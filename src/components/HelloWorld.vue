@@ -6,25 +6,25 @@
      <v-container>
      <v-row>
        <v-col cols="4">
-         <v-select
+         <v-autocomplete
           :items="genes"
           label="Gene" 
           v-model="selected_gene"
-        ></v-select>
+        ></v-autocomplete>
        </v-col> 
       <v-col cols="4">
-         <v-select
+         <v-autocomplete
           :items="variants"
           label="Variant"
           v-model="selected_variant"
-        ></v-select>
+        ></v-autocomplete>
        </v-col> 
      <v-col cols="4">
-         <v-select
+         <v-autocomplete
           :items="diseases"
           label="Disease" 
           v-model="selected_disease"
-        ></v-select>
+        ></v-autocomplete>
       </v-col> 
      </v-row>
      <v-row>
@@ -176,15 +176,19 @@ import * as popoto from 'popoto';
             for (let i = 0; i < res.records.length; i++ ){
               this.pmid_ids.push(res.records[i].get('p').properties.pmid_id);
             }
+            this.pmid_ids.sort();
           }
+          // Sort the array
+          
         }).then(() => {session1.close()});
       const session2 = this.$neo4j.getSession()
       query = 'match (d:Disease) return d';
       session2.run(query).then(res => {
           if (res.records.length > 0) {
             for (let i = 0; i < res.records.length; i++ ){
-              this.diseases.push(res.records[i].get('d').properties.name);
+              this.diseases.push(res.records[i].get('d').properties.name.toLowerCase());
             }
+          this.diseases.sort();
           }
         }).then(() => {session2.close()});
       const session3 = this.$neo4j.getSession()
@@ -204,6 +208,7 @@ import * as popoto from 'popoto';
             for (let i = 0; i < res.records.length; i++ ){
               this.genes.push(res.records[i].get('g').properties.name);
             }
+            this.genes.sort();
           }
       }).then(() => {session4.close()});
 
