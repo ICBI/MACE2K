@@ -1,58 +1,215 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+<div id="main">
+  <v-container>
+   <v-card>
+     <v-card-title>Enter Search Terms:</v-card-title>
+     <v-container>
+     <v-row>
+       <v-col cols="4">
+         <v-select
+          :items="genes"
+          label="Gene" 
+          v-model="selected_gene"
+        ></v-select>
+       </v-col> 
+      <v-col cols="4">
+         <v-select
+          :items="variants"
+          label="Variant"
+          v-model="selected_variant"
+        ></v-select>
+       </v-col> 
+     <v-col cols="4">
+         <v-select
+          :items="diseases"
+          label="Disease" 
+          v-model="selected_disease"
+        ></v-select>
+      </v-col> 
+     </v-row>
+     <v-row>
+       <v-col cols="4">
+         <v-btn small v-on:click="showGraph('g')">Explore</v-btn>
+       </v-col>
+       <v-col cols="4"><v-spacer></v-spacer>
+         <v-btn small v-on:click="showGraph('v')">Explore</v-btn>
+       </v-col>
+       <v-col cols="4">
+         <v-btn small v-on:click="showGraph('d')">Explore</v-btn>
+       </v-col>
+     </v-row>
+     </v-container>
+   </v-card>
+  </v-container>
+  <v-container class="fill-height">
+    <v-row>
+      <v-col cols="12">
+        <v-card height="600px">
+          <div id="popoto-graph" class="ppt-div-graph frame">
+            <!-- Graph will be generated here-->
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
-}
-</script>
+import * as popoto from 'popoto';
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
+  export default {
+    name: 'HelloWorld',
+    mounted() {
+      this.$neo4j.connect('bolt', 'hypatia.esacinc.com', '7687', 'neo4j', 'NIHAI-neo4j', false)
+      this.session = this.$neo4j.getSession()
+      this.connected = true
+      this.getAllData();
+    },
+    data: () => ({
+      connected: false,
+      pmid_ids: [],
+      genes: [],
+      variants: [],
+      diseases: [],
+      selected_gene: '',
+      selected_variant: '',
+      selected_disease: '',
+      showCircles: false,
+    }),
+    methods: {
+    connect () {
+      return this.$neo4j.connect('bolt', 'hypatia.esacinc.com', '7687', 'neo4j', 'NIHAI-neo4j', false)
+    },
+    driver () {
+      // Get a driver instance
+      return this.$neo4j.getDriver()
+    },
+
+    redrawGraph(selectedNodeType) {
+        popoto.dataModel.nodes.length = 0
+        popoto.dataModel.links.length = 0;
+        popoto.dataModel.nodes = [];
+        popoto.dataModel.links = [];
+        if (selectedNodeType == 'g' && (this.selected_gene).length > 1 ) { // Gene
+          console.log('ReStarting with gene:', this.selected_gene);
+          popoto.graph.mainLabel = {
+            label: "Gene",
+            value: {
+                name: this.selected_gene
+              }
+            };
+            popoto.tools.reset();
+            return;
+        }
+        if (selectedNodeType == 'v' && (this.selected_variant).length > 1 ) { // Gene
+        console.log('ReStarting with variant:', this.selected_variant);
+        popoto.graph.mainLabel = {
+            label: "Variant",
+            value: {
+                name: this.selected_variant
+              }
+            };
+          popoto.tools.reset();
+          return;
+        }
+
+        if (selectedNodeType == 'd' && (this.selected_disease).length > 1 ) { // Gene
+          console.log('ReStarting with disease:', this.selected_disease);
+          popoto.graph.mainLabel = {
+            label: "Disease",
+            value: {
+                name: this.selected_disease
+              }
+            };
+          popoto.tools.reset();
+          return;
+        }
+        this.showCircles = true;
+    },
+
+    showGraph(selectedNodeType) {
+      console.log(this.selected_gene);
+      console.log(this.selected_variant);
+      console.log(this.selected_disease);
+      console.log(selectedNodeType);
+      if ( this.showCircles ) {
+        this.redrawGraph(selectedNodeType);
+        return;
+      }
+      if (selectedNodeType == 'g' && (this.selected_gene).length > 1 ) { // Gene
+      console.log('Starting with gene:', this.selected_gene);
+        popoto.start({
+            label: "Gene",
+            value: {
+                name: this.selected_gene
+              }
+            });
+      }
+      if (selectedNodeType == 'v' && (this.selected_variant).length > 1 ) { // Gene
+      console.log('Starting with variant:', this.selected_variant);
+        popoto.start({
+            label: "Variant",
+            value: {
+                name: this.selected_variant
+              }
+            });
+      }
+      if (selectedNodeType == 'd' && (this.selected_disease).length > 1 ) { // Gene
+      console.log('Starting with disease:', this.selected_disease);
+        popoto.start({
+            label: "Disease",
+            value: {
+                name: this.selected_disease
+              }
+            });
+      }
+      this.showCircles = true;
+      
+    },
+
+    getAllData() {
+      let query = 'match (p:PMID) return p';
+      const session1 = this.$neo4j.getSession()
+      session1.run(query).then(res => {
+          if (res.records.length > 0) {
+            for (let i = 0; i < res.records.length; i++ ){
+              this.pmid_ids.push(res.records[i].get('p').properties.pmid_id);
+            }
+          }
+        }).then(() => {session1.close()});
+      const session2 = this.$neo4j.getSession()
+      query = 'match (d:Disease) return d';
+      session2.run(query).then(res => {
+          if (res.records.length > 0) {
+            for (let i = 0; i < res.records.length; i++ ){
+              this.diseases.push(res.records[i].get('d').properties.name);
+            }
+          }
+        }).then(() => {session2.close()});
+      const session3 = this.$neo4j.getSession()
+      query = 'match (v:Variant) return v';
+      session3.run(query).then(res => {
+          if (res.records.length > 0) {
+            for (let i = 0; i < res.records.length; i++ ){
+              this.variants.push(res.records[i].get('v').properties.name);
+            }
+          }
+        }).then(() => {session3.close()});
+
+      const session4 = this.$neo4j.getSession()
+      query = 'match (g:Gene) return g';
+      session4.run(query).then(res => {
+          if (res.records.length > 0) {
+            for (let i = 0; i < res.records.length; i++ ){
+              this.genes.push(res.records[i].get('g').properties.name);
+            }
+          }
+      }).then(() => {session4.close()});
+
+      
+    }
+    }
+
+  }
+</script>
