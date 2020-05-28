@@ -218,3 +218,18 @@ import * as popoto from 'popoto';
 
   }
 </script>
+<style>
+.underline { text-decoration: underline; }
+.frame {
+            height: 550px;
+            background-color: #F8F9FB;
+            position: relative;
+            top: 0;
+            opacity: 1;
+            max-height: 10000px;
+            border-bottom: 1px solid #e6e9ef;
+            overflow: hidden;
+        }
+
+</style>
+
