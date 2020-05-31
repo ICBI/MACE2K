@@ -21,6 +21,10 @@ npm run serve
 ```
 npm run build
 ```
+The build directory can then be copied to any web server where it is to be hosted. May not work over https but have not tested. The deployment location is set in vue.config.js as mace2k-viz - so it has to be deployed on mace2k-viz directory on the web server
+```
+publicPath: process.env.NODE_ENV === 'production' ? '/mace2k-viz/' : '/'
+```
 
 ### Lints and fixes files
 ```
