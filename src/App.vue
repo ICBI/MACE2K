@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import HelloWorld from './components/SearchPanel';
 import * as popoto from 'popoto';
 
  
