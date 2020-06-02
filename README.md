@@ -1,4 +1,8 @@
-# mace2k-viz-app
+# MACE2K
+
+MACE2K project members develop new computational methods and software to retrieve genes, disease, variant, drug related information from multiple sources of big data including: clinicaltrials.gov, PubMed abstracts, open access articles, and conference proceedings.  The software suite primarily contains natural language processing features, machine learning tools and a data visualization module to view and edit relationships between entities extracted. This suite supports biocurators in their workflow to capture the best available evidence for Precision Medicine from unstructured text.
+
+## mace2k-viz-app
 There are two major components to this application - a Vue.js front end and a neo4j graph database (backend). The backend can be accessed at http://hypatia.esacinc.com:7474/browser/
 The username and password are hard coded in the files!
 
